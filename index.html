@@ -4,73 +4,77 @@
 <meta charset="UTF-8">
 <title>Nóxar - Estado Digital</title>
 <style>
-  body { font-family: Arial, sans-serif; background:#1b1b2f; color:#f0f0f0; margin:0; padding:0; }
-  header { background:#272746; padding:1em; text-align:center; }
-  h1 { margin:0; color:#66fcf1; }
-  nav { background:#1f1f3a; display:flex; justify-content:center; gap:1em; padding:0.5em; }
-  nav button { background:#45a29e; border:none; padding:0.5em 1em; color:#fff; cursor:pointer; border-radius:5px; }
-  main { padding:2em; max-width:600px; margin:auto; }
-  section { display:none; margin-top:1em; }
-  input, select, button { padding:0.5em; margin:0.3em 0; width:100%; border-radius:5px; border:none; }
-  button { background:#66fcf1; color:#000; font-weight:bold; cursor:pointer; }
-  table { width:100%; border-collapse:collapse; margin-top:1em; }
-  th, td { border:1px solid #45a29e; padding:0.5em; text-align:center; }
+body { font-family: Arial, sans-serif; background:#1b1b2f; color:#f0f0f0; margin:0; padding:0; }
+header { background:#272746; padding:1em; text-align:center; }
+h1 { margin:0; color:#66fcf1; }
+nav { background:#1f1f3a; display:flex; justify-content:center; gap:1em; padding:0.5em; }
+nav button { background:#45a29e; border:none; padding:0.5em 1em; color:#fff; cursor:pointer; border-radius:5px; }
+main { padding:2em; max-width:700px; margin:auto; }
+section { display:none; margin-top:1em; }
+input, select, textarea, button { padding:0.5em; margin:0.3em 0; width:100%; border-radius:5px; border:none; }
+button { background:#66fcf1; color:#000; font-weight:bold; cursor:pointer; }
+table { width:100%; border-collapse:collapse; margin-top:1em; }
+th, td { border:1px solid #45a29e; padding:0.5em; text-align:center; }
+.admin { background:#ff4444; color:#fff; padding:0.3em 0.5em; border-radius:3px; font-size:0.8em; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Nóxar - Estado Digital</h1>
+  <p id="welcome_msg">Bienvenido</p>
 </header>
 
 <nav>
-  <button onclick="showSection('register')">fol-hom new</button>
-  <button onclick="showSection('login')">fol-hom login</button>
-  <button onclick="showSection('vote')">ke-ren votar</button>
-  <button onclick="showSection('laws')">law-en</button>
-  <button onclick="showSection('results')">Resultados ke-ren</button>
+  <button onclick="showSection('register')">Registrar Ciudadano</button>
+  <button onclick="showSection('login')">Iniciar Sesión</button>
+  <button onclick="showSection('vote')">Votar</button>
+  <button onclick="showSection('laws')">Leyes</button>
+  <button onclick="showSection('results')">Resultados</button>
 </nav>
 
 <main>
   <!-- Registro -->
   <section id="register">
-    <h2>Registro fol-hom</h2>
-    <input type="text" id="reg_nam" placeholder="nam">
-    <input type="password" id="reg_pass" placeholder="pass">
-    <button onclick="registerCitizen()">Crear fol-hom</button>
+    <h2>Registro de Ciudadano</h2>
+    <input type="text" id="reg_name" placeholder="Nombre">
+    <input type="password" id="reg_pass" placeholder="Contraseña">
+    <button onclick="registerCitizen()">Registrar</button>
   </section>
 
   <!-- Login -->
   <section id="login">
-    <h2>Login fol-hom</h2>
-    <input type="text" id="login_nam" placeholder="nam">
-    <input type="password" id="login_pass" placeholder="pass">
+    <h2>Iniciar Sesión</h2>
+    <input type="text" id="login_name" placeholder="Nombre">
+    <input type="password" id="login_pass" placeholder="Contraseña">
     <button onclick="loginCitizen()">Login</button>
     <p id="login_msg"></p>
   </section>
 
   <!-- Votación -->
   <section id="vote">
-    <h2>Votar ke-ren</h2>
+    <h2>Votar en Elecciones</h2>
     <input type="text" id="vote_choice" placeholder="Opción">
-    <button onclick="vote()">Enviar wil-sig</button>
+    <button onclick="vote()">Enviar Voto</button>
     <p id="vote_msg"></p>
   </section>
 
   <!-- Leyes -->
   <section id="laws">
-    <h2>law-en (Leyes)</h2>
-    <input type="text" id="law_name" placeholder="nam ley">
-    <textarea id="law_content" placeholder="Contenido de la ley"></textarea>
-    <button onclick="createLaw()">Crear law-en</button>
+    <h2>Leyes (law-en)</h2>
+    <div id="admin_controls" style="display:none;">
+      <input type="text" id="law_name" placeholder="Nombre de la Ley">
+      <textarea id="law_content" placeholder="Contenido de la Ley"></textarea>
+      <button onclick="createLaw()">Crear Ley</button>
+    </div>
     <table id="laws_table">
-      <tr><th>nam</th><th>Contenido</th></tr>
+      <tr><th>Nombre</th><th>Contenido</th><th>Acción</th></tr>
     </table>
   </section>
 
   <!-- Resultados -->
   <section id="results">
-    <h2>Resultados ke-ren</h2>
+    <h2>Resultados de Elecciones</h2>
     <table id="results_table">
       <tr><th>Opción</th><th>Total</th></tr>
     </table>
@@ -78,67 +82,84 @@
 </main>
 
 <script>
-// Mostrar secciones
-function showSection(id){
-  document.querySelectorAll('main section').forEach(s => s.style.display='none');
-  document.getElementById(id).style.display='block';
-}
-
-// LocalStorage simulando base de datos
+// --- Variables LocalStorage ---
 let citizens = JSON.parse(localStorage.getItem('citizens')||'[]');
 let votes = JSON.parse(localStorage.getItem('votes')||'[]');
 let laws = JSON.parse(localStorage.getItem('laws')||'[]');
 let logged = null;
 
-// Registro
+// --- Función para mostrar secciones ---
+function showSection(id){
+  document.querySelectorAll('main section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+// --- Registro ---
 function registerCitizen(){
-  const nam = document.getElementById('reg_nam').value;
+  const name = document.getElementById('reg_name').value;
   const pass = document.getElementById('reg_pass').value;
-  if(!nam || !pass){ alert('Completa todos los campos'); return; }
-  if(citizens.find(c=>c.nam===nam)){ alert('fol-hom ya existe'); return; }
-  citizens.push({id:citizens.length+1, nam, pass});
+  if(!name || !pass){ alert('Completa todos los campos'); return; }
+  if(citizens.find(c=>c.name===name)){ alert('El usuario ya existe'); return; }
+  let role = citizens.length===0 ? 'admin' : 'user'; // Primer usuario = admin
+  citizens.push({id:citizens.length+1, name, pass, role});
   localStorage.setItem('citizens', JSON.stringify(citizens));
-  alert('fol-hom creado: '+nam);
+  alert('Ciudadano registrado: '+name+(role==='admin'?' (ADMIN)':''));
 }
 
-// Login
+// --- Login ---
 function loginCitizen(){
-  const nam = document.getElementById('login_nam').value;
+  const name = document.getElementById('login_name').value;
   const pass = document.getElementById('login_pass').value;
-  const c = citizens.find(c=>c.nam===nam && c.pass===pass);
-  if(c){ logged = c; document.getElementById('login_msg').textContent='Login correcto: '+c.nam; }
-  else { document.getElementById('login_msg').textContent='Error fol-hom o pass'; }
+  const c = citizens.find(c=>c.name===name && c.pass===pass);
+  if(c){ 
+    logged = c; 
+    document.getElementById('login_msg').textContent='Login correcto: '+c.name+' ('+c.role+')';
+    document.getElementById('welcome_msg').textContent='Bienvenido, '+c.name+' ('+c.role+')';
+    if(c.role==='admin'){ document.getElementById('admin_controls').style.display='block'; }
+    else{ document.getElementById('admin_controls').style.display='none'; }
+  } else {
+    document.getElementById('login_msg').textContent='Usuario o contraseña incorrectos';
+  }
 }
 
-// Votación
+// --- Votación ---
 function vote(){
-  if(!logged){ alert('Debes login'); return; }
+  if(!logged){ alert('Debes iniciar sesión'); return; }
   const choice = document.getElementById('vote_choice').value;
-  if(!choice){ alert('Escribe opción'); return; }
+  if(!choice){ alert('Escribe una opción'); return; }
+  if(votes.find(v=>v.citizen_id===logged.id)){ alert('Ya votaste'); return; }
   votes.push({citizen_id:logged.id, choice});
   localStorage.setItem('votes', JSON.stringify(votes));
-  document.getElementById('vote_msg').textContent='wil-sig enviado';
+  document.getElementById('vote_msg').textContent='Voto enviado';
   updateResults();
 }
 
-// Leyes
+// --- Leyes ---
 function createLaw(){
-  const nam = document.getElementById('law_name').value;
+  if(!logged || logged.role!=='admin'){ alert('Solo admin puede crear leyes'); return; }
+  const name = document.getElementById('law_name').value;
   const content = document.getElementById('law_content').value;
-  if(!nam || !content){ alert('Completa campos'); return; }
-  laws.push({nam, content});
+  if(!name || !content){ alert('Completa los campos'); return; }
+  laws.push({id:laws.length+1, name, content});
   localStorage.setItem('laws', JSON.stringify(laws));
   renderLaws();
 }
 
 function renderLaws(){
   const table = document.getElementById('laws_table');
-  table.innerHTML='<tr><th>nam</th><th>Contenido</th></tr>';
-  laws.forEach(l=>{ table.innerHTML+=`<tr><td>${l.nam}</td><td>${l.content}</td></tr>`; });
+  table.innerHTML='<tr><th>Nombre</th><th>Contenido</th><th>Acción</th></tr>';
+  laws.forEach(l=>{
+    let action = logged && logged.role==='admin' ? `<button onclick="deleteLaw(${l.id})">Eliminar</button>` : '';
+    table.innerHTML+=`<tr><td>${l.name}${logged && logged.role==='admin'?'<span class="admin">ADMIN</span>':''}</td><td>${l.content}</td><td>${action}</td></tr>`;
+  });
 }
-renderLaws();
+function deleteLaw(id){
+  laws = laws.filter(l=>l.id!==id);
+  localStorage.setItem('laws', JSON.stringify(laws));
+  renderLaws();
+}
 
-// Resultados
+// --- Resultados ---
 function updateResults(){
   const table = document.getElementById('results_table');
   table.innerHTML='<tr><th>Opción</th><th>Total</th></tr>';
@@ -146,6 +167,9 @@ function updateResults(){
   votes.forEach(v=>res[v.choice]=(res[v.choice]||0)+1);
   Object.keys(res).forEach(k=> table.innerHTML+=`<tr><td>${k}</td><td>${res[k]}</td></tr>`);
 }
+
+// --- Inicialización ---
+renderLaws();
 updateResults();
 
 </script>
