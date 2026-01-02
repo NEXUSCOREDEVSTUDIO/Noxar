@@ -86,7 +86,10 @@ th, td { border:1px solid #45a29e; padding:0.5em; text-align:center; }
 let citizens = JSON.parse(localStorage.getItem('citizens')||'[]');
 let votes = JSON.parse(localStorage.getItem('votes')||'[]');
 let laws = JSON.parse(localStorage.getItem('laws')||'[]');
-let logged = null;
+
+// --- Sesión persistente ---
+let logged = JSON.parse(localStorage.getItem('logged')||'null');
+if(logged){ showSection('vote'); showAdminControls(); updateWelcome(); renderLaws(); updateResults(); }
 
 // --- Función para mostrar secciones ---
 function showSection(id){
@@ -96,52 +99,66 @@ function showSection(id){
 
 // --- Registro ---
 function registerCitizen(){
-  const name = document.getElementById('reg_name').value;
-  const pass = document.getElementById('reg_pass').value;
+  const name = document.getElementById('reg_name').value.trim();
+  const pass = document.getElementById('reg_pass').value.trim();
   if(!name || !pass){ alert('Completa todos los campos'); return; }
   if(citizens.find(c=>c.name===name)){ alert('El usuario ya existe'); return; }
   let role = citizens.length===0 ? 'admin' : 'user'; // Primer usuario = admin
   citizens.push({id:citizens.length+1, name, pass, role});
   localStorage.setItem('citizens', JSON.stringify(citizens));
   alert('Ciudadano registrado: '+name+(role==='admin'?' (ADMIN)':''));
+  document.getElementById('reg_name').value=''; document.getElementById('reg_pass').value='';
 }
 
 // --- Login ---
 function loginCitizen(){
-  const name = document.getElementById('login_name').value;
-  const pass = document.getElementById('login_pass').value;
+  const name = document.getElementById('login_name').value.trim();
+  const pass = document.getElementById('login_pass').value.trim();
   const c = citizens.find(c=>c.name===name && c.pass===pass);
   if(c){ 
-    logged = c; 
+    logged = c;
+    localStorage.setItem('logged', JSON.stringify(logged));
     document.getElementById('login_msg').textContent='Login correcto: '+c.name+' ('+c.role+')';
-    document.getElementById('welcome_msg').textContent='Bienvenido, '+c.name+' ('+c.role+')';
-    if(c.role==='admin'){ document.getElementById('admin_controls').style.display='block'; }
-    else{ document.getElementById('admin_controls').style.display='none'; }
+    showAdminControls();
+    updateWelcome();
+    renderLaws();
+    updateResults();
   } else {
     document.getElementById('login_msg').textContent='Usuario o contraseña incorrectos';
+  }
+}
+
+// --- Mostrar controles admin ---
+function showAdminControls(){
+  if(logged && logged.role==='admin'){ 
+    document.getElementById('admin_controls').style.display='block'; 
+  } else {
+    document.getElementById('admin_controls').style.display='none';
   }
 }
 
 // --- Votación ---
 function vote(){
   if(!logged){ alert('Debes iniciar sesión'); return; }
-  const choice = document.getElementById('vote_choice').value;
+  const choice = document.getElementById('vote_choice').value.trim();
   if(!choice){ alert('Escribe una opción'); return; }
   if(votes.find(v=>v.citizen_id===logged.id)){ alert('Ya votaste'); return; }
   votes.push({citizen_id:logged.id, choice});
   localStorage.setItem('votes', JSON.stringify(votes));
   document.getElementById('vote_msg').textContent='Voto enviado';
+  document.getElementById('vote_choice').value='';
   updateResults();
 }
 
 // --- Leyes ---
 function createLaw(){
-  if(!logged || logged.role!=='admin'){ alert('Solo admin puede crear leyes'); return; }
-  const name = document.getElementById('law_name').value;
-  const content = document.getElementById('law_content').value;
+  if(!logged || logged.role!=='admin'){ alert('Solo el admin puede crear leyes'); return; }
+  const name = document.getElementById('law_name').value.trim();
+  const content = document.getElementById('law_content').value.trim();
   if(!name || !content){ alert('Completa los campos'); return; }
   laws.push({id:laws.length+1, name, content});
   localStorage.setItem('laws', JSON.stringify(laws));
+  document.getElementById('law_name').value=''; document.getElementById('law_content').value='';
   renderLaws();
 }
 
@@ -153,7 +170,10 @@ function renderLaws(){
     table.innerHTML+=`<tr><td>${l.name}${logged && logged.role==='admin'?'<span class="admin">ADMIN</span>':''}</td><td>${l.content}</td><td>${action}</td></tr>`;
   });
 }
+
+// Eliminar ley
 function deleteLaw(id){
+  if(!logged || logged.role!=='admin'){ alert('Solo admin puede eliminar leyes'); return; }
   laws = laws.filter(l=>l.id!==id);
   localStorage.setItem('laws', JSON.stringify(laws));
   renderLaws();
@@ -168,10 +188,15 @@ function updateResults(){
   Object.keys(res).forEach(k=> table.innerHTML+=`<tr><td>${k}</td><td>${res[k]}</td></tr>`);
 }
 
+// --- Actualizar mensaje de bienvenida ---
+function updateWelcome(){
+  if(logged) document.getElementById('welcome_msg').textContent='Bienvenido, '+logged.name+' ('+logged.role+')';
+  else document.getElementById('welcome_msg').textContent='Bienvenido';
+}
+
 // --- Inicialización ---
 renderLaws();
 updateResults();
-
 </script>
 
 </body>
