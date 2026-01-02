@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nóxar - Estado Digital</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#1b1b2f; color:#f0f0f0; margin:0; padding:0; }
+  header { background:#272746; padding:1em; text-align:center; }
+  h1 { margin:0; color:#66fcf1; }
+  nav { background:#1f1f3a; display:flex; justify-content:center; gap:1em; padding:0.5em; }
+  nav button { background:#45a29e; border:none; padding:0.5em 1em; color:#fff; cursor:pointer; border-radius:5px; }
+  main { padding:2em; max-width:600px; margin:auto; }
+  section { display:none; margin-top:1em; }
+  input, select, button { padding:0.5em; margin:0.3em 0; width:100%; border-radius:5px; border:none; }
+  button { background:#66fcf1; color:#000; font-weight:bold; cursor:pointer; }
+  table { width:100%; border-collapse:collapse; margin-top:1em; }
+  th, td { border:1px solid #45a29e; padding:0.5em; text-align:center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nóxar - Estado Digital</h1>
+</header>
+
+<nav>
+  <button onclick="showSection('register')">fol-hom new</button>
+  <button onclick="showSection('login')">fol-hom login</button>
+  <button onclick="showSection('vote')">ke-ren votar</button>
+  <button onclick="showSection('laws')">law-en</button>
+  <button onclick="showSection('results')">Resultados ke-ren</button>
+</nav>
+
+<main>
+  <!-- Registro -->
+  <section id="register">
+    <h2>Registro fol-hom</h2>
+    <input type="text" id="reg_nam" placeholder="nam">
+    <input type="password" id="reg_pass" placeholder="pass">
+    <button onclick="registerCitizen()">Crear fol-hom</button>
+  </section>
+
+  <!-- Login -->
+  <section id="login">
+    <h2>Login fol-hom</h2>
+    <input type="text" id="login_nam" placeholder="nam">
+    <input type="password" id="login_pass" placeholder="pass">
+    <button onclick="loginCitizen()">Login</button>
+    <p id="login_msg"></p>
+  </section>
+
+  <!-- Votación -->
+  <section id="vote">
+    <h2>Votar ke-ren</h2>
+    <input type="text" id="vote_choice" placeholder="Opción">
+    <button onclick="vote()">Enviar wil-sig</button>
+    <p id="vote_msg"></p>
+  </section>
+
+  <!-- Leyes -->
+  <section id="laws">
+    <h2>law-en (Leyes)</h2>
+    <input type="text" id="law_name" placeholder="nam ley">
+    <textarea id="law_content" placeholder="Contenido de la ley"></textarea>
+    <button onclick="createLaw()">Crear law-en</button>
+    <table id="laws_table">
+      <tr><th>nam</th><th>Contenido</th></tr>
+    </table>
+  </section>
+
+  <!-- Resultados -->
+  <section id="results">
+    <h2>Resultados ke-ren</h2>
+    <table id="results_table">
+      <tr><th>Opción</th><th>Total</th></tr>
+    </table>
+  </section>
+</main>
+
+<script>
+// Mostrar secciones
+function showSection(id){
+  document.querySelectorAll('main section').forEach(s => s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+// LocalStorage simulando base de datos
+let citizens = JSON.parse(localStorage.getItem('citizens')||'[]');
+let votes = JSON.parse(localStorage.getItem('votes')||'[]');
+let laws = JSON.parse(localStorage.getItem('laws')||'[]');
+let logged = null;
+
+// Registro
+function registerCitizen(){
+  const nam = document.getElementById('reg_nam').value;
+  const pass = document.getElementById('reg_pass').value;
+  if(!nam || !pass){ alert('Completa todos los campos'); return; }
+  if(citizens.find(c=>c.nam===nam)){ alert('fol-hom ya existe'); return; }
+  citizens.push({id:citizens.length+1, nam, pass});
+  localStorage.setItem('citizens', JSON.stringify(citizens));
+  alert('fol-hom creado: '+nam);
+}
+
+// Login
+function loginCitizen(){
+  const nam = document.getElementById('login_nam').value;
+  const pass = document.getElementById('login_pass').value;
+  const c = citizens.find(c=>c.nam===nam && c.pass===pass);
+  if(c){ logged = c; document.getElementById('login_msg').textContent='Login correcto: '+c.nam; }
+  else { document.getElementById('login_msg').textContent='Error fol-hom o pass'; }
+}
+
+// Votación
+function vote(){
+  if(!logged){ alert('Debes login'); return; }
+  const choice = document.getElementById('vote_choice').value;
+  if(!choice){ alert('Escribe opción'); return; }
+  votes.push({citizen_id:logged.id, choice});
+  localStorage.setItem('votes', JSON.stringify(votes));
+  document.getElementById('vote_msg').textContent='wil-sig enviado';
+  updateResults();
+}
+
+// Leyes
+function createLaw(){
+  const nam = document.getElementById('law_name').value;
+  const content = document.getElementById('law_content').value;
+  if(!nam || !content){ alert('Completa campos'); return; }
+  laws.push({nam, content});
+  localStorage.setItem('laws', JSON.stringify(laws));
+  renderLaws();
+}
+
+function renderLaws(){
+  const table = document.getElementById('laws_table');
+  table.innerHTML='<tr><th>nam</th><th>Contenido</th></tr>';
+  laws.forEach(l=>{ table.innerHTML+=`<tr><td>${l.nam}</td><td>${l.content}</td></tr>`; });
+}
+renderLaws();
+
+// Resultados
+function updateResults(){
+  const table = document.getElementById('results_table');
+  table.innerHTML='<tr><th>Opción</th><th>Total</th></tr>';
+  const res = {};
+  votes.forEach(v=>res[v.choice]=(res[v.choice]||0)+1);
+  Object.keys(res).forEach(k=> table.innerHTML+=`<tr><td>${k}</td><td>${res[k]}</td></tr>`);
+}
+updateResults();
+
+</script>
+
+</body>
+</html>
