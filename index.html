@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div id="loginBox">
+<div id="loginBox" class="card">
     <h2>Ingreso a Noxar</h2>
     <input id="user" placeholder="Usuario">
     <input id="pass" type="password" placeholder="Contraseña">
@@ -21,7 +21,7 @@
     <p onclick="showRegister()">Crear cuenta</p>
 </div>
 
-<div id="registerBox" style="display:none">
+<div id="registerBox" class="card" style="display:none">
     <h2>Registro Ciudadano</h2>
     <input id="newUser" placeholder="Usuario">
     <input id="newPass" type="password" placeholder="Contraseña">
@@ -30,10 +30,12 @@
 </div>
 
 <div id="panel" style="display:none">
-    <h1>República Digital de Noxar</h1>
-    <h3 id="welcome"></h3>
+    <header>
+        <h1>República Digital de Noxar</h1>
+        <h3 id="welcome"></h3>
+    </header>
 
-    <nav>
+    <nav class="nav-bar">
         <button onclick="showSection('home')">Inicio</button>
         <button onclick="showSection('constitution')">Constitución</button>
         <button onclick="showSection('vote')">Votaciones</button>
@@ -43,46 +45,54 @@
         <button onclick="logout()">Salir</button>
     </nav>
 
-    <div id="home" class="section">
+    <div id="home" class="section card">
         <h2>Bienvenido a Noxar</h2>
         <p>Noxar es una nación digital soberana basada en democracia, orden y tecnología.</p>
     </div>
 
-    <div id="constitution" class="section" style="display:none">
+    <div id="constitution" class="section card" style="display:none">
         <h2>Constitución</h2>
-        <p id="constitutionText"></p>
+        <div id="constitutionTextContainer">
+            <p id="constitutionText"></p>
+            <textarea id="constitutionEdit" style="display:none;width:100%;height:150px;"></textarea>
+            <button id="saveConstitution" style="display:none" onclick="saveConstitution()">Guardar Cambios</button>
+        </div>
     </div>
 
-    <div id="vote" class="section" style="display:none">
+    <div id="vote" class="section card" style="display:none">
         <h2>Votación Nacional</h2>
         <p id="voteQuestion"></p>
         <div id="voteButtons"></div>
         <p id="voteResult"></p>
     </div>
 
-    <div id="presidentialVote" class="section" style="display:none">
+    <div id="presidentialVote" class="section card" style="display:none">
         <h2>Votación Presidencial</h2>
         <div id="presButtons"></div>
         <p id="presVoteResult"></p>
     </div>
 
-    <div id="parliament" class="section" style="display:none">
+    <div id="parliament" class="section card" style="display:none">
         <h2>Parlamento</h2>
-        <div id="chatBox" style="height:200px;overflow:auto;background:#111;padding:5px;"></div>
+        <div id="chatBox" style="height:200px;overflow:auto;background:#111;padding:5px;border-radius:5px;"></div>
         <input id="chatInput" placeholder="Escribe un mensaje">
         <button onclick="sendChat()">Enviar</button>
     </div>
 
-    <div id="admin" class="section" style="display:none">
+    <div id="admin" class="section card" style="display:none">
         <h2>Panel del Líder Supremo</h2>
         <p>Total ciudadanos: <span id="totalUsers"></span></p>
         <p>Votos Sí: <span id="yesVotes"></span></p>
         <p>Votos No: <span id="noVotes"></span></p>
-        <div id="pendingUsers"></div>
+
+        <div id="pendingUsers" class="card"></div>
+
         <button onclick="toggleVote(true)">Habilitar Votación General</button>
         <button onclick="toggleVote(false)">Deshabilitar Votación General</button>
         <button onclick="togglePresidentialVote(true)">Habilitar Votación Presidencial</button>
         <button onclick="togglePresidentialVote(false)">Deshabilitar Votación Presidencial</button>
+
+        <button onclick="editConstitution()">Editar Constitución</button>
     </div>
 </div>
 
