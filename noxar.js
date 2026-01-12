@@ -13,14 +13,14 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const database = firebase.database();
 
 // -------------------
-// CONSTANTES
+// ADMIN FIJO
 // -------------------
 const ADMIN_USER = "Mauro";
 const ADMIN_PASS = "NoxarSupremo2026";
+const ADMIN_UID = "admin_mauro";
 
 // -------------------
 // INICIALIZACIÓN AUTOMÁTICA
@@ -28,15 +28,15 @@ const ADMIN_PASS = "NoxarSupremo2026";
 async function initStructure(){
   const usersSnap = await database.ref('users').once('value');
   if(!usersSnap.exists()){
-    // Crear admin
-    const adminUser = await auth.createUserWithEmailAndPassword("admin@noxar.com", ADMIN_PASS);
-    await database.ref(`users/${adminUser.user.uid}`).set({
+    // Crear admin fijo
+    await database.ref(`users/${ADMIN_UID}`).set({
       username: ADMIN_USER,
       role: "admin",
+      password: ADMIN_PASS,
       approved: true
     });
 
-    // Constitución
+    // Constitución base
     await database.ref('constitution').set({
       text: "1. Noxar es una nación soberana.\n2. El poder pertenece a sus ciudadanos.\n3. Mauro Suarez es el Administrador Supremo.\n4. La democracia digital es obligatoria."
     });
@@ -67,52 +67,60 @@ initStructure();
 // -------------------
 // AUTENTICACIÓN
 // -------------------
-async function login(){
+function login(){
   const u = document.getElementById('user').value;
   const p = document.getElementById('pass').value;
-  try{
-    const userCredential = await auth.signInWithEmailAndPassword(u+"@noxar.com",p);
-    const uid = userCredential.user.uid;
-    const snap = await database.ref(`users/${uid}`).once('value');
-    const userData = snap.val();
-    if(!userData.approved) return alert("Usuario no aprobado");
+
+  if(u === ADMIN_USER && p === ADMIN_PASS){
+    localStorage.setItem("session", JSON.stringify({uid:ADMIN_UID,username:ADMIN_USER,role:"admin",approved:true}));
+    loadPanel();
+    return;
+  }
+
+  // Ciudadanos
+  database.ref('users').orderByChild('username').equalTo(u).once('value',snap=>{
+    if(!snap.exists()) return alert("Usuario no encontrado");
+    const uid = Object.keys(snap.val())[0];
+    const userData = snap.val()[uid];
+    if(userData.password && userData.password!==p) return alert("Contraseña incorrecta");
+    if(!userData.approved) return alert("Usuario no aprobado por el Líder Supremo");
     localStorage.setItem("session", JSON.stringify({uid, ...userData}));
     loadPanel();
-  }catch(e){
-    alert("Usuario o contraseña incorrectos");
-  }
+  });
 }
 
-async function register(){
+function register(){
   const u = document.getElementById('newUser').value;
   const p = document.getElementById('newPass').value;
-  try{
-    const userCredential = await auth.createUserWithEmailAndPassword(u+"@noxar.com",p);
-    const uid = userCredential.user.uid;
-    await database.ref(`users/${uid}`).set({username:u,role:"citizen",approved:false});
-    alert("Registro enviado, esperando aprobación");
+
+  if(u === ADMIN_USER) return alert("Este usuario ya existe");
+
+  database.ref('users').orderByChild('username').equalTo(u).once('value',snap=>{
+    if(snap.exists()) return alert("Usuario ya registrado");
+    const newUid = "user_" + Date.now();
+    database.ref(`users/${newUid}`).set({username:u,role:"citizen",password:p,approved:false});
+    alert("Registro enviado, esperando aprobación del Líder Supremo");
     showLogin();
-  }catch(e){
-    alert("Error: "+e.message);
-  }
+  });
 }
 
 function logout(){
-  auth.signOut();
   localStorage.removeItem("session");
   location.reload();
 }
 
 // -------------------
-// PANEL
+// PANEL Y SECCIONES
 // -------------------
 function loadPanel(){
   document.getElementById('loginBox').style.display="none";
   document.getElementById('registerBox').style.display="none";
   document.getElementById('panel').style.display="block";
+
   const session = JSON.parse(localStorage.getItem("session"));
-  document.getElementById('welcome').innerText = "Usuario: "+session.username;
-  if(session.role==="admin") document.getElementById('adminBtn').style.display="inline-block";
+  document.getElementById('welcome').innerText = "Usuario: " + session.username;
+
+  if(session.role === "admin") document.getElementById('adminBtn').style.display="inline-block";
 }
 
 function showSection(id){
