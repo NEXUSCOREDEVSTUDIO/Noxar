@@ -2,202 +2,68 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Nóxar - Estado Digital</title>
-<style>
-body { font-family: Arial, sans-serif; background:#1b1b2f; color:#f0f0f0; margin:0; padding:0; }
-header { background:#272746; padding:1em; text-align:center; }
-h1 { margin:0; color:#66fcf1; }
-nav { background:#1f1f3a; display:flex; justify-content:center; gap:1em; padding:0.5em; }
-nav button { background:#45a29e; border:none; padding:0.5em 1em; color:#fff; cursor:pointer; border-radius:5px; }
-main { padding:2em; max-width:700px; margin:auto; }
-section { display:none; margin-top:1em; }
-input, select, textarea, button { padding:0.5em; margin:0.3em 0; width:100%; border-radius:5px; border:none; }
-button { background:#66fcf1; color:#000; font-weight:bold; cursor:pointer; }
-table { width:100%; border-collapse:collapse; margin-top:1em; }
-th, td { border:1px solid #45a29e; padding:0.5em; text-align:center; }
-.admin { background:#ff4444; color:#fff; padding:0.3em 0.5em; border-radius:3px; font-size:0.8em; }
-</style>
+<title>Noxar – República Digital</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <h1>Nóxar - Estado Digital</h1>
-  <p id="welcome_msg">Bienvenido</p>
-</header>
+<div id="loginBox">
+    <h2>Ingreso a Noxar</h2>
+    <input id="user" placeholder="Usuario">
+    <input id="pass" type="password" placeholder="Contraseña">
+    <button onclick="login()">Entrar</button>
+    <p onclick="showRegister()">Crear cuenta</p>
+</div>
 
-<nav>
-  <button onclick="showSection('register')">Registrar Ciudadano</button>
-  <button onclick="showSection('login')">Iniciar Sesión</button>
-  <button onclick="showSection('vote')">Votar</button>
-  <button onclick="showSection('laws')">Leyes</button>
-  <button onclick="showSection('results')">Resultados</button>
-</nav>
+<div id="registerBox" style="display:none">
+    <h2>Registro Ciudadano</h2>
+    <input id="newUser" placeholder="Usuario">
+    <input id="newPass" type="password" placeholder="Contraseña">
+    <button onclick="register()">Registrarse</button>
+    <p onclick="showLogin()">Volver</p>
+</div>
 
-<main>
-  <!-- Registro -->
-  <section id="register">
-    <h2>Registro de Ciudadano</h2>
-    <input type="text" id="reg_name" placeholder="Nombre">
-    <input type="password" id="reg_pass" placeholder="Contraseña">
-    <button onclick="registerCitizen()">Registrar</button>
-  </section>
+<div id="panel" style="display:none">
+    <h1>República Digital de Noxar</h1>
+    <h3 id="welcome"></h3>
 
-  <!-- Login -->
-  <section id="login">
-    <h2>Iniciar Sesión</h2>
-    <input type="text" id="login_name" placeholder="Nombre">
-    <input type="password" id="login_pass" placeholder="Contraseña">
-    <button onclick="loginCitizen()">Login</button>
-    <p id="login_msg"></p>
-  </section>
+    <nav>
+        <button onclick="showSection('home')">Inicio</button>
+        <button onclick="showSection('constitution')">Constitución</button>
+        <button onclick="showSection('vote')">Votaciones</button>
+        <button id="adminBtn" onclick="showSection('admin')" style="display:none">Admin</button>
+        <button onclick="logout()">Salir</button>
+    </nav>
 
-  <!-- Votación -->
-  <section id="vote">
-    <h2>Votar en Elecciones</h2>
-    <input type="text" id="vote_choice" placeholder="Opción">
-    <button onclick="vote()">Enviar Voto</button>
-    <p id="vote_msg"></p>
-  </section>
-
-  <!-- Leyes -->
-  <section id="laws">
-    <h2>Leyes (law-en)</h2>
-    <div id="admin_controls" style="display:none;">
-      <input type="text" id="law_name" placeholder="Nombre de la Ley">
-      <textarea id="law_content" placeholder="Contenido de la Ley"></textarea>
-      <button onclick="createLaw()">Crear Ley</button>
+    <div id="home" class="section">
+        <h2>Bienvenido a Noxar</h2>
+        <p>Noxar es una nación digital soberana basada en democracia, orden y tecnología.</p>
     </div>
-    <table id="laws_table">
-      <tr><th>Nombre</th><th>Contenido</th><th>Acción</th></tr>
-    </table>
-  </section>
 
-  <!-- Resultados -->
-  <section id="results">
-    <h2>Resultados de Elecciones</h2>
-    <table id="results_table">
-      <tr><th>Opción</th><th>Total</th></tr>
-    </table>
-  </section>
-</main>
+    <div id="constitution" class="section" style="display:none">
+        <h2>Constitución</h2>
+        <p>1. Noxar es una nación soberana.</p>
+        <p>2. El poder pertenece a sus ciudadanos.</p>
+        <p>3. Mauro Suarez es el Administrador Supremo.</p>
+        <p>4. La democracia digital es obligatoria.</p>
+    </div>
 
-<script>
-// --- Variables LocalStorage ---
-let citizens = JSON.parse(localStorage.getItem('citizens')||'[]');
-let votes = JSON.parse(localStorage.getItem('votes')||'[]');
-let laws = JSON.parse(localStorage.getItem('laws')||'[]');
+    <div id="vote" class="section" style="display:none">
+        <h2>Votación Nacional</h2>
+        <p>¿Apruebas el sistema de Noxar?</p>
+        <button onclick="vote('si')">Sí</button>
+        <button onclick="vote('no')">No</button>
+        <p id="voteResult"></p>
+    </div>
 
-// --- Sesión persistente ---
-let logged = JSON.parse(localStorage.getItem('logged')||'null');
-if(logged){ showSection('vote'); showAdminControls(); updateWelcome(); renderLaws(); updateResults(); }
+    <div id="admin" class="section" style="display:none">
+        <h2>Panel del Administrador</h2>
+        <p>Total ciudadanos: <span id="totalUsers"></span></p>
+        <p>Votos Sí: <span id="yesVotes"></span></p>
+        <p>Votos No: <span id="noVotes"></span></p>
+    </div>
+</div>
 
-// --- Función para mostrar secciones ---
-function showSection(id){
-  document.querySelectorAll('main section').forEach(s=>s.style.display='none');
-  document.getElementById(id).style.display='block';
-}
-
-// --- Registro ---
-function registerCitizen(){
-  const name = document.getElementById('reg_name').value.trim();
-  const pass = document.getElementById('reg_pass').value.trim();
-  if(!name || !pass){ alert('Completa todos los campos'); return; }
-  if(citizens.find(c=>c.name===name)){ alert('El usuario ya existe'); return; }
-  let role = citizens.length===0 ? 'admin' : 'user'; // Primer usuario = admin
-  citizens.push({id:citizens.length+1, name, pass, role});
-  localStorage.setItem('citizens', JSON.stringify(citizens));
-  alert('Ciudadano registrado: '+name+(role==='admin'?' (ADMIN)':''));
-  document.getElementById('reg_name').value=''; document.getElementById('reg_pass').value='';
-}
-
-// --- Login ---
-function loginCitizen(){
-  const name = document.getElementById('login_name').value.trim();
-  const pass = document.getElementById('login_pass').value.trim();
-  const c = citizens.find(c=>c.name===name && c.pass===pass);
-  if(c){ 
-    logged = c;
-    localStorage.setItem('logged', JSON.stringify(logged));
-    document.getElementById('login_msg').textContent='Login correcto: '+c.name+' ('+c.role+')';
-    showAdminControls();
-    updateWelcome();
-    renderLaws();
-    updateResults();
-  } else {
-    document.getElementById('login_msg').textContent='Usuario o contraseña incorrectos';
-  }
-}
-
-// --- Mostrar controles admin ---
-function showAdminControls(){
-  if(logged && logged.role==='admin'){ 
-    document.getElementById('admin_controls').style.display='block'; 
-  } else {
-    document.getElementById('admin_controls').style.display='none';
-  }
-}
-
-// --- Votación ---
-function vote(){
-  if(!logged){ alert('Debes iniciar sesión'); return; }
-  const choice = document.getElementById('vote_choice').value.trim();
-  if(!choice){ alert('Escribe una opción'); return; }
-  if(votes.find(v=>v.citizen_id===logged.id)){ alert('Ya votaste'); return; }
-  votes.push({citizen_id:logged.id, choice});
-  localStorage.setItem('votes', JSON.stringify(votes));
-  document.getElementById('vote_msg').textContent='Voto enviado';
-  document.getElementById('vote_choice').value='';
-  updateResults();
-}
-
-// --- Leyes ---
-function createLaw(){
-  if(!logged || logged.role!=='admin'){ alert('Solo el admin puede crear leyes'); return; }
-  const name = document.getElementById('law_name').value.trim();
-  const content = document.getElementById('law_content').value.trim();
-  if(!name || !content){ alert('Completa los campos'); return; }
-  laws.push({id:laws.length+1, name, content});
-  localStorage.setItem('laws', JSON.stringify(laws));
-  document.getElementById('law_name').value=''; document.getElementById('law_content').value='';
-  renderLaws();
-}
-
-function renderLaws(){
-  const table = document.getElementById('laws_table');
-  table.innerHTML='<tr><th>Nombre</th><th>Contenido</th><th>Acción</th></tr>';
-  laws.forEach(l=>{
-    let action = logged && logged.role==='admin' ? `<button onclick="deleteLaw(${l.id})">Eliminar</button>` : '';
-    table.innerHTML+=`<tr><td>${l.name}${logged && logged.role==='admin'?'<span class="admin">ADMIN</span>':''}</td><td>${l.content}</td><td>${action}</td></tr>`;
-  });
-}
-
-// Eliminar ley
-function deleteLaw(id){
-  if(!logged || logged.role!=='admin'){ alert('Solo admin puede eliminar leyes'); return; }
-  laws = laws.filter(l=>l.id!==id);
-  localStorage.setItem('laws', JSON.stringify(laws));
-  renderLaws();
-}
-
-// --- Resultados ---
-function updateResults(){
-  const table = document.getElementById('results_table');
-  table.innerHTML='<tr><th>Opción</th><th>Total</th></tr>';
-  const res = {};
-  votes.forEach(v=>res[v.choice]=(res[v.choice]||0)+1);
-  Object.keys(res).forEach(k=> table.innerHTML+=`<tr><td>${k}</td><td>${res[k]}</td></tr>`);
-}
-
-// --- Actualizar mensaje de bienvenida ---
-function updateWelcome(){
-  if(logged) document.getElementById('welcome_msg').textContent='Bienvenido, '+logged.name+' ('+logged.role+')';
-  else document.getElementById('welcome_msg').textContent='Bienvenido';
-}
-
-// --- Inicialización ---
-renderLaws();
-updateResults();
-</script>
-
+<script src="noxar.js"></script>
 </body>
 </html>
