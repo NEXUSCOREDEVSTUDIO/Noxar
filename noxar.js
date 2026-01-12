@@ -22,7 +22,7 @@ const ADMIN_PASS = "NoxarSupremo2026";
 const ADMIN_UID = "admin_mauro";
 
 // -------------------
-// INICIALIZACIÓN ESTRUCTURA
+// INICIALIZACIÓN AUTOMÁTICA
 // -------------------
 async function initStructure(){
   const usersSnap = await database.ref('users').once('value');
@@ -49,7 +49,7 @@ async function initStructure(){
       results: {},
       voted: []
     });
-    await database.ref('parliament').set({ members: [], chats: {} });
+    await database.ref('parliament').set({ members: [], chats: [] });
   }
 }
 initStructure();
@@ -60,12 +60,10 @@ initStructure();
 function login(){
   const u = document.getElementById('user').value;
   const p = document.getElementById('pass').value;
-
   if(u===ADMIN_USER && p===ADMIN_PASS){
     localStorage.setItem("session",JSON.stringify({uid:ADMIN_UID,username:ADMIN_USER,role:"admin",approved:true}));
     loadPanel(); return;
   }
-
   database.ref('users').orderByChild('username').equalTo(u).once('value',snap=>{
     if(!snap.exists()) return alert("Usuario no encontrado");
     const uid = Object.keys(snap.val())[0];
@@ -115,9 +113,6 @@ function showSection(id){
   if(id==="parliament") loadParliament();
 }
 
-function showRegister(){document.getElementById('loginBox').style.display="none"; document.getElementById('registerBox').style.display="block";}
-function showLogin(){document.getElementById('registerBox').style.display="none"; document.getElementById('loginBox').style.display="block";}
-
 // -------------------
 // CONSTITUCIÓN EDITABLE
 // -------------------
@@ -125,7 +120,6 @@ function loadConstitution(){
   firebase.database().ref('constitution/text').on('value',snap=>{
     document.getElementById('constitutionText').innerText = snap.val();
   });
-
   const session = JSON.parse(localStorage.getItem("session"));
   if(session.role==="admin"){
     document.getElementById('constitutionEdit').style.display="block";
@@ -170,14 +164,14 @@ async function vote(option){
 function toggleVote(active){database.ref('votes/vote1/active').set(active);}
 
 // -------------------
-// VOTACIÓN PRESIDENCIAL (ADMIN PUEDE AGREGAR CANDIDATOS)
+// VOTACIÓN PRESIDENCIAL
+// -------------------
 async function loadPresidentialVote(){
   const snap = await database.ref('presidentialVote').once('value');
   const data = snap.val();
   const div = document.getElementById('presButtons');
   const session = JSON.parse(localStorage.getItem("session"));
   if(session.role==="admin"){
-    // Admin puede agregar candidato
     const candidate = prompt("Agregar candidato presidencial (nombre):");
     if(candidate){
       if(!data.options.includes(candidate)){
@@ -210,7 +204,8 @@ async function votePres(option){
 function togglePresidentialVote(active){database.ref('presidentialVote/active').set(active);}
 
 // -------------------
-// ADMIN PANEL COMPLETO
+// ADMIN PANEL
+// -------------------
 async function loadAdmin(){
   const usersSnap = await database.ref('users').once('value');
   const users = usersSnap.val();
@@ -226,7 +221,10 @@ async function loadAdmin(){
   document.getElementById('noVotes').innerText=voteSnap.val().results.no;
 
   const pendDiv = document.getElementById('pendingUsers');
-  pendDiv.innerHTML = pending.map(u=>`<button onclick="approveCitizen('${u.uid}')">${u.username} - Aprobar</button>`).join('');
+  pendDiv.innerHTML = pending.map(u=>`
+    <button onclick="approveCitizen('${u.uid}')">${u.username} - Aprobar</button>
+    <button onclick="assignRole('${u.uid}')">Asignar Rol</button>
+  `).join('');
 }
 
 async function approveCitizen(uid){
@@ -236,12 +234,25 @@ async function approveCitizen(uid){
 }
 
 // -------------------
-// PARLAMENTO CHAT
+// ASIGNAR ROLES (SOLO ADMIN)
+async function assignRole(uid){
+  const session = JSON.parse(localStorage.getItem("session"));
+  if(session.role!=="admin") return alert("Solo el Líder Supremo puede asignar roles");
+  const role = prompt("Asignar rol (citizen/parliament):");
+  if(role!=="citizen" && role!=="parliament") return alert("Rol inválido");
+  await database.ref(`users/${uid}`).update({role});
+  alert("Rol asignado");
+  loadAdmin();
+}
+
+// -------------------
+// PARLAMENTO CHAT EN TIEMPO REAL
 async function loadParliament(){
   const session = JSON.parse(localStorage.getItem("session"));
   const snap = await database.ref('parliament').once('value');
   const par = snap.val();
   if(!par.members.includes(session.username) && session.username!==ADMIN_USER) return alert("No tienes acceso al parlamento");
+
   const chatRef = database.ref('parliament/chats/main');
   chatRef.on('value',snap=>{
     const msgs = snap.val() || [];
