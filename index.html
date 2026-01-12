@@ -2,56 +2,88 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Noxar – Portal Nacional</title>
+<title>Noxar – República Digital</title>
 <link rel="stylesheet" href="style.css">
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
 </head>
 <body>
 
 <div id="loginBox">
-  <img src="noxar.png" class="flag">
-  <h1>República Digital de Noxar</h1>
-  <input id="user" placeholder="Usuario">
-  <input id="pass" type="password" placeholder="Contraseña">
-  <button onclick="login()">Ingresar</button>
+    <h2>Ingreso a Noxar</h2>
+    <input id="user" placeholder="Usuario">
+    <input id="pass" type="password" placeholder="Contraseña">
+    <button onclick="login()">Entrar</button>
+    <p onclick="showRegister()">Crear cuenta</p>
 </div>
 
-<div id="portal" style="display:none">
-  <aside>
-    <h2 id="who"></h2>
-    <button onclick="show('dashboard')">Perfil</button>
-    <button onclick="show('constitution')">Constitución</button>
-    <button onclick="show('parliament')">Parlamento</button>
-    <button id="adminBtn" onclick="show('admin')" style="display:none">Presidencia</button>
-    <button onclick="logout()">Salir</button>
-  </aside>
+<div id="registerBox" style="display:none">
+    <h2>Registro Ciudadano</h2>
+    <input id="newUser" placeholder="Usuario">
+    <input id="newPass" type="password" placeholder="Contraseña">
+    <button onclick="register()">Registrarse</button>
+    <p onclick="showLogin()">Volver</p>
+</div>
 
-  <main>
-    <section id="dashboard">
-      <h2>Identidad Digital</h2>
-      <div id="idCard"></div>
-    </section>
+<div id="panel" style="display:none">
+    <h1>República Digital de Noxar</h1>
+    <h3 id="welcome"></h3>
 
-    <section id="constitution" style="display:none">
-      <h2>Constitución de Noxar</h2>
-      <textarea id="lawText"></textarea>
-      <button id="saveLaw" onclick="saveConstitution()">Guardar</button>
-    </section>
+    <nav>
+        <button onclick="showSection('home')">Inicio</button>
+        <button onclick="showSection('constitution')">Constitución</button>
+        <button onclick="showSection('vote')">Votaciones</button>
+        <button onclick="showSection('presidentialVote')">Votación Presidencial</button>
+        <button onclick="showSection('parliament')">Parlamento</button>
+        <button id="adminBtn" onclick="showSection('admin')" style="display:none">Admin</button>
+        <button onclick="logout()">Salir</button>
+    </nav>
 
-    <section id="parliament" style="display:none">
-      <h2>Referéndum Nacional</h2>
-      <p>¿Apruebas la Constitución de Noxar?</p>
-      <button onclick="vote('yes')">Sí</button>
-      <button onclick="vote('no')">No</button>
-      <div id="voteStatus"></div>
-    </section>
+    <div id="home" class="section">
+        <h2>Bienvenido a Noxar</h2>
+        <p>Noxar es una nación digital soberana basada en democracia, orden y tecnología.</p>
+    </div>
 
-    <section id="admin" style="display:none">
-      <h2>Panel Presidencial</h2>
-      <p>Ciudadanos registrados: <span id="citizens"></span></p>
-      <p>Votos Sí: <span id="vYes"></span></p>
-      <p>Votos No: <span id="vNo"></span></p>
-    </section>
-  </main>
+    <div id="constitution" class="section" style="display:none">
+        <h2>Constitución</h2>
+        <p id="constitutionText"></p>
+    </div>
+
+    <div id="vote" class="section" style="display:none">
+        <h2>Votación Nacional</h2>
+        <p id="voteQuestion"></p>
+        <div id="voteButtons"></div>
+        <p id="voteResult"></p>
+    </div>
+
+    <div id="presidentialVote" class="section" style="display:none">
+        <h2>Votación Presidencial</h2>
+        <div id="presButtons"></div>
+        <p id="presVoteResult"></p>
+    </div>
+
+    <div id="parliament" class="section" style="display:none">
+        <h2>Parlamento</h2>
+        <div id="chatBox" style="height:200px;overflow:auto;background:#111;padding:5px;"></div>
+        <input id="chatInput" placeholder="Escribe un mensaje">
+        <button onclick="sendChat()">Enviar</button>
+    </div>
+
+    <div id="admin" class="section" style="display:none">
+        <h2>Panel del Líder Supremo</h2>
+        <p>Total ciudadanos: <span id="totalUsers"></span></p>
+        <p>Votos Sí: <span id="yesVotes"></span></p>
+        <p>Votos No: <span id="noVotes"></span></p>
+        <div id="pendingUsers"></div>
+        <button onclick="toggleVote(true)">Habilitar Votación General</button>
+        <button onclick="toggleVote(false)">Deshabilitar Votación General</button>
+        <button onclick="togglePresidentialVote(true)">Habilitar Votación Presidencial</button>
+        <button onclick="togglePresidentialVote(false)">Deshabilitar Votación Presidencial</button>
+    </div>
 </div>
 
 <script src="noxar.js"></script>
